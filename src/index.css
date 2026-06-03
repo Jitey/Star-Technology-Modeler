@@ -1,75 +1,45 @@
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg-0: #0a0c0f;
-  --bg-1: #111418;
-  --bg-2: #1a1f26;
-  --bg-3: #232930;
-  --border: #2a3140;
-  --border-bright: #3a4555;
+  --bg-0: #080b0f;
+  --bg-1: #0f1318;
+  --bg-2: #161c24;
+  --bg-3: #1e2630;
+  --border: #252e3a;
+  --border-b: #2e3d50;
   --accent: #f0a500;
-  --accent-dim: #a87300;
-  --accent-glow: rgba(240, 165, 0, 0.15);
-  --text-0: #e8ecf0;
-  --text-1: #8a9ab0;
-  --text-2: #4a5568;
-  --green: #2dd4a0;
-  --green-dim: rgba(45, 212, 160, 0.12);
-  --red: #f05050;
-  --red-dim: rgba(240, 80, 80, 0.12);
-  --blue: #5090f0;
-  --blue-dim: rgba(80, 144, 240, 0.12);
-  --font-ui: 'Syne', sans-serif;
-  --font-mono: 'Space Mono', monospace;
-  --radius: 6px;
-  --radius-lg: 10px;
+  --accent-dim: #7a5500;
+  --accent-glow: rgba(240,165,0,0.12);
+  --t0: #dde4ec;
+  --t1: #7a8fa8;
+  --t2: #3a4d62;
+  --green: #29d49a;
+  --green-dim: rgba(41,212,154,0.1);
+  --red: #f05252;
+  --red-dim: rgba(240,82,82,0.1);
+  --blue: #4d8ff5;
+  --blue-dim: rgba(77,143,245,0.1);
+  --orange: #f07a28;
+  --font: 'Syne', sans-serif;
+  --mono: 'Space Mono', monospace;
+  --r: 6px;
+  --r-lg: 10px;
 }
-
-html, body, #root {
-  height: 100%;
-  background: var(--bg-0);
-  color: var(--text-0);
-  font-family: var(--font-ui);
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
+html, body, #root { height: 100%; background: var(--bg-0); color: var(--t0); font-family: var(--font); font-size: 13px; -webkit-font-smoothing: antialiased; }
+button { cursor: pointer; border: none; background: none; color: inherit; font-family: var(--font); }
+input, select { font-family: var(--font); }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg-1); }
-::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border-b); border-radius: 2px; }
+input[type=number] { -moz-appearance: textfield; }
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
 
-input, select, button { font-family: var(--font-ui); }
-
-button {
-  cursor: pointer;
-  border: none;
-  background: none;
-  color: inherit;
+/* ReactFlow overrides */
+.react-flow__attribution { display: none; }
+.react-flow__handle {
+  width: 10px !important; height: 10px !important;
+  background: var(--accent) !important;
+  border: 2px solid var(--bg-2) !important;
+  border-radius: 50% !important;
 }
-
-input[type="number"], input[type="text"], select {
-  background: var(--bg-0);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  color: var(--text-0);
-  padding: 6px 10px;
-  font-size: 13px;
-  font-family: var(--font-mono);
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-input[type="number"]:focus,
-input[type="text"]:focus,
-select:focus {
-  border-color: var(--accent);
-}
-
-input[type="number"] { -moz-appearance: textfield; }
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+.react-flow__handle:hover { background: var(--t0) !important; }
