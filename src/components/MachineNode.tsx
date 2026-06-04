@@ -28,16 +28,18 @@ export default memo(function MachineNode({ data, selected }: NodeProps) {
 
   const borderColor = selected ? 'var(--accent)' : isBottleneck ? 'var(--red)' : recipe ? 'var(--blue-dim)' : 'var(--border-b)';
 
+  const inputCount = recipe ? recipe.inputs.length : 1;
+  const outputCount = recipe ? recipe.outputs.length : 1;
+  const maxRows = Math.max(inputCount, outputCount);
+
   return (
     <div style={{
       background: 'var(--bg-2)', border: `1.5px solid ${borderColor}`,
-      borderRadius: 'var(--r-lg)', padding: '10px 14px', minWidth: 220,
+      borderRadius: 'var(--r-lg)', padding: '10px 14px', minWidth: 260, position: 'relative',
       boxShadow: selected ? `0 0 0 1px var(--accent)` : 'none',
     }}>
-      <Handle type="target" position={Position.Left} />
-
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, paddingLeft: 6 }}>
         <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--blue)', fontFamily: 'var(--mono)' }}>
           {mt?.name ?? 'Machine'}
         </span>
@@ -51,17 +53,61 @@ export default memo(function MachineNode({ data, selected }: NodeProps) {
         )}
       </div>
 
-      {/* Recipe */}
+      {/* Recipe name */}
       {recipe ? (
-        <div style={{ fontSize: 11, color: 'var(--t0)', marginBottom: 6, fontFamily: 'var(--mono)' }}>
+        <div style={{ fontSize: 11, color: 'var(--t0)', marginBottom: 6, fontFamily: 'var(--mono)', paddingLeft: 6 }}>
           {recipe.name}
-          <div style={{ color: 'var(--t2)', marginTop: 2 }}>
-            {recipe.inputs.map(i => i.itemName).join(', ')} → {recipe.outputs.map(o => o.itemName).join(', ')}
-          </div>
         </div>
       ) : (
-        <div style={{ fontSize: 11, color: 'var(--t2)', fontStyle: 'italic', marginBottom: 6 }}>
+        <div style={{ fontSize: 11, color: 'var(--t2)', fontStyle: 'italic', marginBottom: 6, paddingLeft: 6 }}>
           Connecte un input pour assigner une recette
+        </div>
+      )}
+
+      {/* I/O rows with handles */}
+      {recipe ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginBottom: 6 }}>
+          {Array.from({ length: maxRows }).map((_, i) => {
+            const inp = recipe.inputs[i] ?? null;
+            const out = recipe.outputs[i] ?? null;
+            const inpRate = inp ? calc?.inputRates.find(r => r.itemName === inp.itemName) : null;
+            const outRate = out ? calc?.outputRates.find(r => r.itemName === out.itemName) : null;
+
+            return (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, position: 'relative', minHeight: 20 }}>
+                {/* Input side */}
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4, color: 'var(--t2)', fontFamily: 'var(--mono)' }}>
+                  {inp && (
+                    <>
+                      <Handle type="target" position={Position.Left} id={inp.itemName} style={{ left: -5 }} />
+                      <span style={{ color: 'var(--t0)' }}>{inp.itemName}</span>
+                      {inpRate && <span style={{ color: 'var(--blue)', fontSize: 10 }}>{inpRate.rate.toFixed(3)}/s</span>}
+                    </>
+                  )}
+                </div>
+
+                {/* Arrow */}
+                <span style={{ color: 'var(--t2)' }}>→</span>
+
+                {/* Output side */}
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, color: 'var(--t2)', fontFamily: 'var(--mono)', textAlign: 'right' }}>
+                  {out && (
+                    <>
+                      {outRate && <span style={{ color: 'var(--green)', fontSize: 10 }}>{outRate.rate.toFixed(3)}/s</span>}
+                      <span style={{ color: 'var(--t0)' }}>{out.itemName}</span>
+                      <Handle type="source" position={Position.Right} id={out.itemName} style={{ right: -5 }} />
+                    </>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* Single generic handles when no recipe selected */
+        <div style={{ position: 'relative', minHeight: 1 }}>
+          <Handle type="target" position={Position.Left} id="input" style={{ left: -5 }} />
+          <Handle type="source" position={Position.Right} id="output" style={{ right: -5 }} />
         </div>
       )}
 
@@ -78,17 +124,9 @@ export default memo(function MachineNode({ data, selected }: NodeProps) {
             <span style={{ color: 'var(--t1)' }}>Duration</span>
             <span style={{ color: 'var(--t0)', fontFamily: 'var(--mono)' }}>{calc.effectiveDuration.toFixed(3)}s</span>
           </div>
-          {calc.outputRates.map((r, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
-              <span style={{ color: 'var(--t1)' }}>{r.itemName}</span>
-              <span style={{ color: 'var(--green)', fontFamily: 'var(--mono)' }}>{r.rate.toFixed(4)}/s</span>
-            </div>
-          ))}
           <UtilBar pct={calc.utilization * 100} />
         </div>
       )}
-
-      <Handle type="source" position={Position.Right} />
     </div>
   );
 });

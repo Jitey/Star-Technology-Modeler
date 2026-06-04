@@ -56,17 +56,18 @@ export const useStore = create<StoreState>((set, get) => ({
 
   onConnect: (connection) => {
     if (!connection.source || !connection.target) return;
-    if (get().edges.some(e => e.source === connection.source && e.target === connection.target)) return;
+    // Dedup: one edge per target handle (each input handle gets at most one connection)
+    if (get().edges.some(e => e.target === connection.target && e.targetHandle === connection.targetHandle)) return;
 
     const edge = { ...connection, id: `e_${genId()}`, type: 'smoothstep', animated: true, markerEnd: { type: MarkerType.ArrowClosed, color: '#f0a500' }, style: { stroke: '#f0a500', strokeWidth: 1.5 } };
     const newEdges = [...get().edges, edge];
     set({ edges: newEdges });
 
-    // Auto-assign recipe
+    // Auto-assign recipe using the specific item from sourceHandle
     const targetNode = get().nodes.find(n => n.id === connection.target);
     const sourceNode = get().nodes.find(n => n.id === connection.source);
     if (targetNode && sourceNode) {
-      const recipeId = autoAssignRecipe(targetNode, sourceNode);
+      const recipeId = autoAssignRecipe(targetNode, sourceNode, connection.sourceHandle);
       if (recipeId && targetNode.data.type === 'machine') {
         set({
           nodes: get().nodes.map(n => n.id === targetNode.id

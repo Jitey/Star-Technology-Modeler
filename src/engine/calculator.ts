@@ -22,12 +22,29 @@ function getIncomingFlows(nodeId: string, nodes: CustomNode[], edges: CustomEdge
   for (const edge of edges.filter(e => e.target === nodeId)) {
     const src = nodes.find(n => n.id === edge.source);
     if (!src) continue;
+
+    // Use sourceHandle to identify the specific item flowing
+    const itemName = edge.sourceHandle as string | undefined;
+    if (!itemName) {
+      // Fallback: old edges without handle — scan all outputs
+      if (src.data.type === 'source') {
+        for (const o of src.data.config.outputs) {
+          flows.push({ itemName: o.itemName, rate: o.amount * (o.probability / 100) / o.interval });
+        }
+      } else if (src.data.type === 'machine' && src.data.calculation) {
+        for (const r of src.data.calculation.outputRates) flows.push(r);
+      }
+      continue;
+    }
+
     if (src.data.type === 'source') {
-      for (const o of src.data.config.outputs) {
-        flows.push({ itemName: o.itemName, rate: o.amount * (o.probability / 100) / o.interval });
+      const output = src.data.config.outputs.find(o => o.itemName === itemName);
+      if (output) {
+        flows.push({ itemName, rate: output.amount * (output.probability / 100) / output.interval });
       }
     } else if (src.data.type === 'machine' && src.data.calculation) {
-      for (const r of src.data.calculation.outputRates) flows.push(r);
+      const outRate = src.data.calculation.outputRates.find(r => r.itemName === itemName);
+      if (outRate) flows.push(outRate);
     }
   }
   return flows;
@@ -80,20 +97,16 @@ export function calculateMachine(
 // ─── Auto-assign recipe when connecting ──────────────────────────────────────
 export function autoAssignRecipe(
   targetNode: CustomNode,
-  sourceNode: CustomNode
+  sourceNode: CustomNode,
+  sourceHandle: string | null
 ): string | null {
   if (targetNode.data.type !== 'machine') return null;
   if (targetNode.data.config.selectedRecipeId) return null; // already has one
 
-  let incomingItems: string[] = [];
-  if (sourceNode.data.type === 'source') {
-    incomingItems = sourceNode.data.config.outputs.map(o => o.itemName);
-  } else if (sourceNode.data.type === 'machine' && sourceNode.data.calculation) {
-    incomingItems = sourceNode.data.calculation.outputRates.map(r => r.itemName);
-  }
+  const incomingItem = sourceHandle;
+  if (!incomingItem) return null;
 
-  if (incomingItems.length === 0) return null;
-  const matches = findMatchingRecipes(targetNode.data.config.machineTypeId, incomingItems);
+  const matches = findMatchingRecipes(targetNode.data.config.machineTypeId, [incomingItem]);
   return matches[0]?.id ?? null;
 }
 
