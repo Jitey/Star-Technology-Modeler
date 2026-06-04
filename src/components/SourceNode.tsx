@@ -2,6 +2,11 @@ import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { CustomNodeData, SourceOutput } from '../types';
 
+const ROW_H = 19;
+function handleTop(index: number): number {
+  return 10 + 14 + 8 + index * ROW_H + ROW_H / 2;
+}
+
 export default memo(function SourceNode({ data, selected }: NodeProps) {
   const d = data as Extract<CustomNodeData, { type: 'source' }>;
   const outputs = d.config.outputs;
@@ -18,15 +23,21 @@ export default memo(function SourceNode({ data, selected }: NodeProps) {
       {outputs.length === 0
         ? <div style={{ fontSize: 11, color: 'var(--t2)', fontStyle: 'italic' }}>No outputs (configure →)</div>
         : outputs.map((o: SourceOutput, i: number) => (
-            <div key={i} style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4, gap: 12 }}>
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4, gap: 12 }}>
               <span style={{ color: 'var(--t0)', fontFamily: 'var(--mono)' }}>{o.itemName}</span>
               <span style={{ color: 'var(--green)', fontFamily: 'var(--mono)' }}>
                 {(o.amount * (o.probability / 100) / o.interval).toFixed(3)}/s
               </span>
-              <Handle type="source" position={Position.Right} id={o.itemName} style={{ right: -5 }} />
             </div>
           ))
       }
+
+      {/* Handles positioned directly relative to the node container */}
+      {outputs.map((o, i) => (
+        <Handle key={`h-${o.itemName}`} type="source" position={Position.Right} id={o.itemName}
+          isConnectable={true}
+          style={{ top: handleTop(i) }} />
+      ))}
     </div>
   );
 });

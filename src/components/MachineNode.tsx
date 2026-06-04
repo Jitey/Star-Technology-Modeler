@@ -28,9 +28,8 @@ export default memo(function MachineNode({ data, selected }: NodeProps) {
 
   const borderColor = selected ? 'var(--accent)' : isBottleneck ? 'var(--red)' : recipe ? 'var(--blue-dim)' : 'var(--border-b)';
 
-  const inputCount = recipe ? recipe.inputs.length : 1;
-  const outputCount = recipe ? recipe.outputs.length : 1;
-  const maxRows = Math.max(inputCount, outputCount);
+  const ioSectionTop = 10 + 16 + 8 + (recipe ? 15 + 6 : 15 + 6);
+  const rowH = 21;
 
   return (
     <div style={{
@@ -64,38 +63,26 @@ export default memo(function MachineNode({ data, selected }: NodeProps) {
         </div>
       )}
 
-      {/* I/O rows with handles */}
+      {/* I/O rows (content only, handles are positioned separately below) */}
       {recipe ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 1, marginBottom: 6 }}>
-          {Array.from({ length: maxRows }).map((_, i) => {
-            const inp = recipe.inputs[i] ?? null;
+          {recipe.inputs.map((inp, i) => {
             const out = recipe.outputs[i] ?? null;
-            const inpRate = inp ? calc?.inputRates.find(r => r.itemName === inp.itemName) : null;
-            const outRate = out ? calc?.outputRates.find(r => r.itemName === out.itemName) : null;
+            const inpRate = calc?.inputRates.find(r => r.itemName === inp.itemName) ?? null;
+            const outRate = out ? calc?.outputRates.find(r => r.itemName === out.itemName) ?? null : null;
 
             return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, position: 'relative', minHeight: 20 }}>
-                {/* Input side */}
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, minHeight: 20 }}>
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 4, color: 'var(--t2)', fontFamily: 'var(--mono)' }}>
-                  {inp && (
-                    <>
-                      <Handle type="target" position={Position.Left} id={inp.itemName} style={{ left: -5 }} />
-                      <span style={{ color: 'var(--t0)' }}>{inp.itemName}</span>
-                      {inpRate && <span style={{ color: 'var(--blue)', fontSize: 10 }}>{inpRate.rate.toFixed(3)}/s</span>}
-                    </>
-                  )}
+                  <span style={{ color: 'var(--t0)' }}>{inp.itemName}</span>
+                  {inpRate && <span style={{ color: 'var(--blue)', fontSize: 10 }}>{inpRate.rate.toFixed(3)}/s</span>}
                 </div>
-
-                {/* Arrow */}
                 <span style={{ color: 'var(--t2)' }}>→</span>
-
-                {/* Output side */}
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, color: 'var(--t2)', fontFamily: 'var(--mono)', textAlign: 'right' }}>
                   {out && (
                     <>
                       {outRate && <span style={{ color: 'var(--green)', fontSize: 10 }}>{outRate.rate.toFixed(3)}/s</span>}
                       <span style={{ color: 'var(--t0)' }}>{out.itemName}</span>
-                      <Handle type="source" position={Position.Right} id={out.itemName} style={{ right: -5 }} />
                     </>
                   )}
                 </div>
@@ -104,11 +91,29 @@ export default memo(function MachineNode({ data, selected }: NodeProps) {
           })}
         </div>
       ) : (
-        /* Single generic handles when no recipe selected */
-        <div style={{ position: 'relative', minHeight: 1 }}>
-          <Handle type="target" position={Position.Left} id="input" style={{ left: -5 }} />
-          <Handle type="source" position={Position.Right} id="output" style={{ right: -5 }} />
-        </div>
+        <div style={{ minHeight: 1 }} />
+      )}
+
+      {/* Input handles (left) — positioned directly on the node container */}
+      {recipe ? recipe.inputs.map((inp, i) => (
+        <Handle key={`h-${inp.itemName}`} type="target" position={Position.Left} id={inp.itemName}
+          isConnectable={true}
+          style={{ top: ioSectionTop + i * rowH + rowH / 2 }} />
+      )) : (
+        <Handle type="target" position={Position.Left} id="input"
+          isConnectable={true}
+          style={{ top: ioSectionTop + rowH / 2 }} />
+      )}
+
+      {/* Output handles (right) — positioned directly on the node container */}
+      {recipe ? recipe.outputs.map((out, i) => (
+        <Handle key={`h-${out.itemName}`} type="source" position={Position.Right} id={out.itemName}
+          isConnectable={true}
+          style={{ top: ioSectionTop + i * rowH + rowH / 2 }} />
+      )) : (
+        <Handle type="source" position={Position.Right} id="output"
+          isConnectable={true}
+          style={{ top: ioSectionTop + rowH / 2 }} />
       )}
 
       {/* Calc results */}

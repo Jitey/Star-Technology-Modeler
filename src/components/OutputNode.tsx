@@ -11,7 +11,7 @@ export default memo(function OutputNode({ data, selected }: NodeProps) {
       background: 'var(--bg-2)', border: `1.5px solid ${selected ? 'var(--orange)' : 'var(--border-b)'}`,
       borderRadius: 'var(--r-lg)', padding: '10px 14px', minWidth: 180, position: 'relative',
     }}>
-      <Handle type="target" position={Position.Left} id="input" />
+      <Handle type="target" position={Position.Left} id="input" isConnectable={true} />
       <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--orange)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8, fontFamily: 'var(--mono)' }}>
         ⬡ Output
       </div>
